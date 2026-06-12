@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BTC Paper Trading Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css">
+  </head>
+  <body data-theme="dark">
+    <div id="app">
+      <header class="header glassmorphism">
+        <div class="logo">
+          <h1>⚡ BTC Trader Pro</h1>
+        </div>
+        <nav class="navbar">
+          <button class="nav-btn active" data-target="view-trading">Trading</button>
+          <button class="nav-btn" data-target="view-positions">Positions & History</button>
+          <button class="nav-btn" data-target="view-options">Options Chain</button>
+          <button class="nav-btn" data-target="view-predictions">Predictions</button>
+          <div class="nav-btc-price">BTC: <span id="nav-btc-price-value">Loading...</span></div>
+          <button id="theme-toggle" class="theme-btn" title="Toggle Theme">☀️</button>
+        </nav>
+        <div class="portfolio-summary">
+          <div class="summary-item">
+            <span class="label">Total Value (USD)</span>
+            <span class="value" id="total-value">$10,000.00</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Cash Balance (USD)</span>
+            <span class="value" id="cash-balance">$10,000.00</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">BTC Holdings</span>
+            <span class="value" id="btc-holdings">0.00000000</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <!-- Trading View -->
+        <div id="view-trading" class="view-section active-view">
+          <div class="chart-container glassmorphism">
+            <div class="chart-header">
+              <h2><span id="active-symbol-title">BTCUSDT</span> <span id="live-price" class="live-price loading">Connecting...</span></h2>
+              <div style="display: flex; gap: 0.5rem;">
+                <button id="btn-toggle-chart" class="nav-btn" style="border: 1px solid var(--border-color);">Hide Chart</button>
+                <button id="btn-spot-btc" class="nav-btn" style="display: none; border: 1px solid var(--border-color);">Trade Spot BTC</button>
+              </div>
+            </div>
+            <div id="tvchart"></div>
+          </div>
+
+          <aside class="sidebar">
+            <div class="order-entry glassmorphism">
+              <h3>Trade BTC</h3>
+              <div class="input-group">
+                <label for="trade-amount">Amount (BTC)</label>
+                <input type="number" id="trade-amount" placeholder="0.1" step="0.001" min="0.001">
+              </div>
+              <div class="input-group">
+                <label>Estimated Value (USD)</label>
+                <div class="estimated-value" id="estimated-value">$0.00</div>
+              </div>
+              
+              <div class="input-group" id="order-pnl-group" style="display: none; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color);">
+                <label style="margin-bottom: 0.15rem;">Open Position:</label>
+                <div id="order-position-size" style="font-weight: bold; margin-bottom: 0.35rem;">0.00</div>
+                <label style="margin-bottom: 0.15rem;">Unrealized PnL:</label>
+                <div id="order-pnl-value" style="font-weight: bold; font-family: monospace;">$0.00</div>
+              </div>
+
+              <div class="action-buttons">
+                <button id="btn-buy" class="btn buy-btn">Buy Market</button>
+                <button id="btn-sell" class="btn sell-btn">Sell Market</button>
+              </div>
+              <div id="trade-feedback" class="feedback-msg"></div>
+            </div>
+
+            <div class="market-stats glassmorphism" style="margin-top: 0.6rem; padding: 1rem; border-radius: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);">
+              <h3 style="margin-top: 0; font-size: 0.95rem; margin-bottom: 0.5rem;">Market Stats</h3>
+              <div class="input-group">
+                <label for="stat-current">Current Value</label>
+                <input type="text" id="stat-current" readonly value="Loading..." style="background: rgba(0,0,0,0.2); cursor: default;">
+              </div>
+              <div class="input-group">
+                <label for="stat-week-low">Week Lowest Value</label>
+                <input type="text" id="stat-week-low" readonly value="Loading..." style="background: rgba(0,0,0,0.2); cursor: default;">
+              </div>
+              <div class="input-group">
+                <label for="stat-week-high">Week Highest Value</label>
+                <input type="text" id="stat-week-high" readonly value="Loading..." style="background: rgba(0,0,0,0.2); cursor: default;">
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <!-- Positions View -->
+        <div id="view-positions" class="view-section" style="display: none;">
+          <div class="full-width-container">
+            <div class="positions glassmorphism full-panel">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <h3 style="margin-bottom: 0;">Open Positions</h3>
+                <button class="refresh-data-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+                  Refresh Prices
+                </button>
+              </div>
+              <div class="positions-table-wrapper large-table">
+                <table id="positions-table">
+                  <thead>
+                    <tr>
+                      <th>Symbol</th>
+                      <th>Size</th>
+                      <th>Avg Entry</th>
+                      <th>Current Price</th>
+                      <th>Unrealized PnL</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="positions-tbody">
+                    <!-- Position rows will be injected here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="trade-history glassmorphism full-panel">
+              <h3>Trade History</h3>
+              <div class="history-table-wrapper large-table">
+                <table id="history-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Symbol</th>
+                      <th>Price</th>
+                      <th>Amount</th>
+                      <th>Realized PnL</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody id="history-tbody">
+                    <!-- History rows will be injected here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Options View -->
+        <div id="view-options" class="view-section" style="display: none;">
+          <div class="full-width-container">
+            <div class="options-header glassmorphism">
+              <h3>Options Chain</h3>
+              <div class="options-controls">
+                <button class="refresh-data-btn" style="margin-right: 0.5rem;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+                  Refresh Prices
+                </button>
+                <label for="expiry-select">Expiration:</label>
+                <select id="expiry-select" class="styled-select">
+                  <option value="">Loading...</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="options-chain glassmorphism full-panel">
+              <div class="options-table-wrapper large-table">
+                <table id="options-table">
+                  <thead>
+                    <tr class="options-thead-main">
+                      <th colspan="3" class="text-center call-head">CALLS (CE)</th>
+                      <th class="text-center strike-head">STRIKE</th>
+                      <th colspan="3" class="text-center put-head">PUTS (PE)</th>
+                    </tr>
+                    <tr class="options-thead-sub">
+                      <th>Bid</th>
+                      <th>Ask</th>
+                      <th>Last</th>
+                      
+                      <th class="text-center">Price</th>
+                      
+                      <th>Last</th>
+                      <th>Bid</th>
+                      <th>Ask</th>
+                    </tr>
+                  </thead>
+                  <tbody id="options-tbody">
+                    <!-- Options rows will be injected here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Predictions View -->
+        <div id="view-predictions" class="view-section" style="display: none;">
+          <div class="full-width-container">
+            <div class="predictions-header glassmorphism full-panel">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <h3 style="margin: 0; font-size: 1rem;">⚡ Real-Time Probability Engine</h3>
+                  <p style="margin-top: 0.25rem; color: var(--text-secondary); font-size: 0.78rem;">
+                    Multi-source: Binance · News · ETF Flow · Weights: OI 20% · Funding 15% · News 15% · Trend 15%
+                  </p>
+                  <div class="pred-settings-row">
+                    <div class="pred-setting-group">
+                      <label class="pred-setting-label" for="cp-api-key">📰 CryptoPanic API Key</label>
+                      <input id="cp-api-key" class="pred-setting-input" type="password" placeholder="Get free key at cryptopanic.com" />
+                    </div>
+                    <div class="pred-setting-group">
+                      <label class="pred-setting-label" for="etf-flow-input">📊 ETF Daily Flow (USD)</label>
+                      <input id="etf-flow-input" class="pred-setting-input" type="number" placeholder="e.g. 450000000 or -200000000" />
+                    </div>
+                  </div>
+                </div>
+                <button id="btn-refresh-predictions" class="refresh-data-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+                  Run Analysis
+                </button>
+              </div>
+            </div>
+
+            <div id="predictions-cards" class="predictions-cards-grid">
+              <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary);">
+                Click "Run Analysis" to generate probability predictions
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
