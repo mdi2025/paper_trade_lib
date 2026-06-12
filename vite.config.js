@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  base: '/paper_trade_lib/',
+
   server: {
     proxy: {
       '/eapi': {
